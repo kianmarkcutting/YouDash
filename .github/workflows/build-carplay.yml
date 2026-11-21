@@ -1,0 +1,41 @@
+name: Build YouDash CarPlay module
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - '.github/workflows/build-carplay.yml'
+
+jobs:
+  build:
+    runs-on: macos-15
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout YouDash
+        uses: actions/checkout@v4
+
+      - name: Configure Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Confirm Xcode SDK
+        run: |
+          xcodebuild -version
+          xcrun --sdk iphoneos --show-sdk-path
+
+      - name: Install build dependencies
+        run: |
+          python3 -m pip install --upgrade pip
+          python3 -m pip install -r requirements-build.txt
+
+      - name: Compile CarPlay integration
+        run: python3 scripts/build_carplay.py --compile-only
+
+      - name: Upload compiled module
+        uses: actions/upload-artifact@v4
+        with:
+          name: YouDash-CarPlay-Module
+          path: build/YouTubeCarPlay.dylib
+          if-no-files-found: error
